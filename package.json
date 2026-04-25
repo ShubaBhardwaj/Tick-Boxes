@@ -1,0 +1,24 @@
+{
+  "name": "tickboxes",
+  "version": "1.0.0",
+  "description": "a simple tick boxes of the websockets",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ShubaBhardwaj/Tick-Boxes.git"
+  },
+  "author": "Shubham Bhardwaj",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShubaBhardwaj/Tick-Boxes/issues"
+  },
+  "homepage": "https://github.com/ShubaBhardwaj/Tick-Boxes#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

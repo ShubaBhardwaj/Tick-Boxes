@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10,000 Checkboxes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        /* Slightly styled checkboxes for a better look */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Custom tooltip */
+        .cb-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+        .cb-wrap[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>10,000 Checkboxes</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <input type="text" id="name-input" placeholder="Enter your name" style="padding: 5px; font-size: 16px;" />
+    </div>
+    <div id="checkbox-container"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io("http://127.0.0.1:3000");
+
+            socket.on('connect', () => {
+                console.log('Connected to server with ID:', socket.id);
+            });
+
+            // Listen for initial states on connection
+            socket.on('initial-states', (states) => {
+                states.forEach(({ id, checked, name }) => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = checked;
+                        if (checked) {
+                            checkbox.classList.add('locked');
+                            if (checkbox.parentElement) {
+                                checkbox.parentElement.setAttribute('data-tooltip', name);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Listen for checkbox state updates from the server
+            socket.on('update-checkbox-state', ({ id, checked, name }) => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) {
+                    checkbox.checked = checked;
+                    if (checked) {
+                        checkbox.classList.add('locked');
+                        if (checkbox.parentElement) {
+                            checkbox.parentElement.setAttribute('data-tooltip', name);
+                        }
+                    }
+                    console.log(`Checkbox ${id} updated to: ${checked} by ${name}`);
+                }
+            });
+
+            const container = document.getElementById('checkbox-container');
+            const nameInput = document.getElementById('name-input');
+            const fragment = document.createDocumentFragment();
+
+            // Using Array.from to create an array of 10,000 items and iterating over it
+            Array.from({ length: 10000 }).forEach((_, index) => {
+                // Wrap each checkbox in a span for custom tooltip
+                const wrap = document.createElement('span');
+                wrap.classList.add('cb-wrap');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `cb-${index}`;
+
+                // Prevent clicking if locked
+                checkbox.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('locked')) {
+                        e.preventDefault();
+                    }
+                });
+
+                // Apply event listener on each checkbox
+                checkbox.addEventListener('change', (e) => {
+                    if (!e.target.checked) {
+                        e.target.checked = true;
+                        return;
+                    }
+
+                    const name = nameInput.value.trim();
+
+                    if (!name) {
+                        alert("Please enter your name before checking a box.");
+                        e.target.checked = false;
+                        return;
+                    }
+
+                    const checkBoxId = e.target.id;
+
+                    // Lock and set tooltip on wrapper
+                    e.target.classList.add('locked');
+                    wrap.setAttribute('data-tooltip', name);
+
+                    socket.emit('checkbox-clicked', { id: checkBoxId, checked: e.target.checked, name: name });
+                    console.log(`Checkbox ${index} state changed to: ${e.target.checked} by ${name}`);
+                    nameInput.value = '';
+                });
+
+                wrap.appendChild(checkbox);
+                fragment.appendChild(wrap);
+            });
+
+            // Append all checkboxes at once for performance
+            container.appendChild(fragment);
+        });
+    </script>
+</body>
+
+</html>
