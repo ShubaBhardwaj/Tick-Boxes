@@ -63,7 +63,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const socket = io("http://127.0.0.1:3000");
+            const socket = io();
 
             socket.on('connect', () => {
                 console.log('Connected to server with ID:', socket.id);
@@ -96,7 +96,7 @@
                             checkbox.parentElement.setAttribute('data-tooltip', name);
                         }
                     }
-                    console.log(`Checkbox ${id} updated to: ${checked} by ${name}`);
+                    // console.log(`Checkbox ${id} updated to: ${checked} by ${name}`);
                 }
             });
 
@@ -143,7 +143,7 @@
                     wrap.setAttribute('data-tooltip', name);
 
                     socket.emit('checkbox-clicked', { id: checkBoxId, checked: e.target.checked, name: name });
-                    console.log(`Checkbox ${index} state changed to: ${e.target.checked} by ${name}`);
+                    // console.log(`Checkbox ${index} state changed to: ${e.target.checked} by ${name}`);
                     nameInput.value = '';
                 });
 
